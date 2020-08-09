@@ -27,7 +27,7 @@
  *
  *----------------------------------------------------------------------------*/
 
-var Chess = function(fen, KING_TAKE) {
+export var Chess = function(fen, KING_TAKE) {
   var BLACK = 'b'
   var WHITE = 'w'
 
@@ -1944,12 +1944,3 @@ var Chess = function(fen, KING_TAKE) {
     }
   }
 }
-
-/* export Chess object if using node or any other CommonJS compatible
- * environment */
-if (typeof exports !== 'undefined') exports.Chess = Chess
-/* export Chess object for any RequireJS compatible environment */
-if (typeof define !== 'undefined')
-  define(function() {
-    return Chess
-  })
