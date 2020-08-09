@@ -1305,6 +1305,31 @@ var Chess = function(fen, KING_TAKE) {
       return reset()
     },
 
+    /*
+      Get moves in the format
+        {
+          from: 'e7',
+          to: 'e8',
+          promotion: 'q',
+        }
+    */
+    move_objects: function(options) {
+      var legal = KING_TAKE ? false : true;
+      var ugly_moves = generate_moves({ ...options, legal })
+      var moves = []
+
+      for (var i = 0; i < ugly_moves.length; i++) {
+        var move = ugly_moves[i]
+        var move_obj = {
+          from: algebraic(move.from),
+          to: algebraic(move.to),
+          promotion: move.promotion,
+        };
+        moves.push(move_obj)
+      }
+      return moves
+    },
+
     moves: function(options) {
       /* The internal representation of a chess move is in 0x88 format, and
        * not meant to be human-readable.  The code below converts the 0x88
