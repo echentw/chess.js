@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * Copyright (c) 2020, Jeff Hlywa (jhlywa@gmail.com)
  * All rights reserved.
@@ -25,7 +27,7 @@
  *
  *----------------------------------------------------------------------------*/
 
-var Chess = function(fen) {
+var Chess = function(fen, KING_TAKE) {
   var BLACK = 'b'
   var WHITE = 'w'
 
@@ -879,6 +881,18 @@ var Chess = function(fen) {
     return repetition
   }
 
+  // Returns the number of kings on the board
+  function count_kings() {
+    var num_kings = 0;
+    for (var i = 0; i < board.length; ++i) {
+      var piece = board[i];
+      if (piece && piece.type === KING) {
+        num_kings += 1;
+      }
+    }
+    return num_kings;
+  }
+
   function push(move) {
     history.push({
       move: move,
@@ -1137,7 +1151,8 @@ var Chess = function(fen) {
       }
     }
 
-    var moves = generate_moves()
+    var legal = KING_TAKE ? false : true;
+    var moves = generate_moves({ legal })
     for (var i = 0, len = moves.length; i < len; i++) {
       // try the strict parser first, then the sloppy parser if requested
       // by the user
@@ -1297,7 +1312,8 @@ var Chess = function(fen) {
        * unnecessary move keys resulting from a verbose call.
        */
 
-      var ugly_moves = generate_moves(options)
+      var legal = KING_TAKE ? false : true;
+      var ugly_moves = generate_moves({ ...options, legal })
       var moves = []
 
       for (var i = 0, len = ugly_moves.length; i < len; i++) {
@@ -1348,13 +1364,22 @@ var Chess = function(fen) {
     },
 
     game_over: function() {
-      return (
-        half_moves >= 100 ||
-        in_checkmate() ||
-        in_stalemate() ||
-        insufficient_material() ||
-        in_threefold_repetition()
-      )
+      if (KING_TAKE) {
+        return (
+          half_moves >= 100 ||
+          insufficient_material() ||
+          in_threefold_repetition() ||
+          count_kings() < 2
+        )
+      } else {
+        return (
+          half_moves >= 100 ||
+          in_checkmate() ||
+          in_stalemate() ||
+          insufficient_material() ||
+          in_threefold_repetition()
+        )
+      }
     },
 
     validate_fen: function(fen) {
@@ -1770,7 +1795,9 @@ var Chess = function(fen) {
       if (typeof move === 'string') {
         move_obj = move_from_san(move, sloppy)
       } else if (typeof move === 'object') {
-        var moves = generate_moves()
+
+        var legal = KING_TAKE ? false : true;
+        var moves = generate_moves({ legal });
 
         /* convert the pretty move object to an ugly move object */
         for (var i = 0, len = moves.length; i < len; i++) {
