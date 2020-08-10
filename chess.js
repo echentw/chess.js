@@ -565,9 +565,26 @@ export var Chess = function(fen, KING_TAKE) {
         continue
       }
 
+      if (options && options.fog_view) {
+        us = options.fog_color
+      }
+
       var piece = board[i]
       if (piece == null || piece.color !== us) {
-        continue
+        continue;
+      }
+
+      if (options && options.fog_view) {
+        add_move(board, moves, i, i, BITS.NORMAL);
+
+        for (var j = 0; j < PIECE_OFFSETS[KING].length; j++) {
+          var offset = PIECE_OFFSETS[KING][j]
+          var square = i
+
+          square += offset
+          if (square & 0x88) continue
+          add_move(board, moves, i, square, BITS.NORMAL)
+        }
       }
 
       if (piece.type === PAWN) {
@@ -1425,6 +1442,35 @@ export var Chess = function(fen, KING_TAKE) {
         } else {
           row.push({ type: board[i].type, color: board[i].color })
         }
+        if ((i + 1) & 0x88) {
+          output.push(row)
+          row = []
+          i += 8
+        }
+      }
+
+      return output
+    },
+
+    board_with_fog: function(color) {
+      var ugly_moves = generate_moves({ legal: false, fog_view: true, fog_color: color })
+      var to_squares_with_duplicates = ugly_moves.map(m => m.to);
+      var to_squares = new Set(to_squares_with_duplicates)
+
+      var output = []
+      var row = []
+
+      for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
+        if (to_squares.has(i)) {
+          if (board[i] == null) {
+            row.push(null);
+          } else {
+            row.push({ type: board[i].type, color: board[i].color })
+          }
+        } else {
+          row.push('X')
+        }
+
         if ((i + 1) & 0x88) {
           output.push(row)
           row = []
